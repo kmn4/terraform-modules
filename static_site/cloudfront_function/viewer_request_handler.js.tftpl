@@ -1,0 +1,29 @@
+async function handler(event) {
+  const request = event.request;
+  const headers = request.headers;
+  const uri = request.uri;
+
+  if (uri.endsWith('/')) {
+    request.uri += 'index.html';
+  } else if (!uri.includes('.')) {
+    request.uri += '/index.html';
+  }
+
+%{ if use_auth ~}
+  const auth = "Basic ${userpass}";
+
+  if ('authorization' in headers && headers.authorization.value === auth) {
+    return request;
+  }
+
+  return {
+    statusCode: 401,
+    statusDescription: "Unauthorized",
+    headers: {
+      "www-authenticate": { value: "Basic" }
+    }
+  };
+%{ else ~}
+  return request;
+%{ endif ~}
+}
